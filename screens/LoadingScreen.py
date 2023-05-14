@@ -3,10 +3,14 @@ from textual.containers import Vertical
 from textual.timer import Timer
 from textual.screen import Screen
 from textual.widgets import ProgressBar, TextLog
-
+from textual.message import Message
+from time import sleep
 
 class LoadingScreen(Screen):
     progress_timer: Timer
+
+    class ProgressBarComplete(Message): pass 
+
     def compose(self) -> ComposeResult:
         self.progress_markers = TextLog()
         with Vertical():
@@ -63,7 +67,14 @@ class LoadingScreen(Screen):
             self.change_rate = animation_change['rate']
             self.progress_markers.write("[borealisBootloader ver0.0.1-alpha-6ecb55] " + animation_change['text'])
         
-        bar.advance(self.change_rate)
+        if value == 1:
+            if self.done == False:
+                sleep(1)
+                self.post_message(self.ProgressBarComplete())
+                self.done =  True
+        else: 
+            self.done = False
+            bar.advance(self.change_rate)
 
 
     def action_start(self) -> None:
