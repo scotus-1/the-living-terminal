@@ -1,0 +1,35 @@
+#box {
+    width: auto;
+    height: auto;
+    border: ascii orange;
+    border-title-align: center;
+    border-title-color: orange;
+    padding: 2 7;
+    
+}
+
+.input_container {
+    height: auto;
+    padding-top: 1;
+    padding-bottom: 1;
+}
+
+#box Input {
+    border: none;
+}
+
+.input_container Label {
+    text-style: italic;
+    text-opacity: 75%;
+}
+#box > Label {
+    link-color: deepskyblue;
+    link-hover-background: white 0%;
+    link-hover-color: deepskyblue;
+    link-style: italic;
+    link-hover-style: underline;
+    text-style: italic;
+    width: 100%;
+    content-align: right middle;
+    padding-bottom: 0;
+}

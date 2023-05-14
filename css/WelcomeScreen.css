@@ -1,0 +1,16 @@
+LoginForm {
+    height: 50%;
+    width: 40%;
+    content-align: center middle;
+}
+
+ApertureWelcome {
+    height: 50%;
+    width: 100%;
+    align: center bottom;
+}
+
+#LoginContainer {
+    padding-top: 5;
+    align: center top;
+}

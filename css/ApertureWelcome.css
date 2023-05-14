@@ -1,0 +1,15 @@
+#apt_logo{
+    color: deepskyblue;
+    text-style: bold;
+}
+
+#apt_text {
+    color: beige;
+    text-style: italic;
+    margin: 6 0 5 5;
+}
+
+#aperture {
+    width: auto;
+    height: auto;
+}
