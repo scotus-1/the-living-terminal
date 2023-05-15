@@ -1,0 +1,17 @@
+TerminalInput Input {
+   height: auto;
+   border: none;
+   background: $background;
+}
+
+TerminalInput Label {
+    height: auto;
+    color: deepskyblue
+}
+
+TerminalInput Horizontal {
+    height: auto;
+    width: 100%;
+    border: ascii orange;
+    padding: 1;
+}

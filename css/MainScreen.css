@@ -1,4 +1,5 @@
 SideBar {
+    dock: left;
     height: 100%;
     width: 15%;
     background: $background;
@@ -17,3 +18,8 @@ TopHeader {
     background: $background;
 }
 
+MainWidgetContainer {
+    height: 100%;
+    width: 100%;
+    background: $panel;
+}
