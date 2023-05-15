@@ -1,6 +1,5 @@
 import glob
 import sys
-from textual import events
 from textual.app import App
 from screens.WelcomeScreen import WelcomeScreen
 from screens.LoadingScreen import LoadingScreen
@@ -12,8 +11,20 @@ from faker import Faker
 from textual.screen import Screen
 from textual.app import ComposeResult
 from textual.widget import Widget
-from textual.containers import Horizontal, Vertical, VerticalScroll, Container, ScrollableContainer
-from textual.widgets import Label, Input, MarkdownViewer, DataTable, ListView, ListItem, Switch
+from textual.containers import Horizontal, Vertical, VerticalScroll, Center, Middle, Container
+from textual.widgets import Label, Input, DataTable, ListView, ListItem, Switch
+from textual.reactive import reactive
+
+
+def app_query(widget: Widget, query):
+    current_parent = widget
+    while True:
+        if current_parent.parent: 
+            current_parent = current_parent.parent
+        
+        if isinstance(current_parent, App):
+            return current_parent.query(query)
+        
 
 class SideBar(Widget):
     def compose(self) -> ComposeResult:
@@ -45,8 +56,13 @@ class TerminalInput(Widget):
         
 
 class Directory(Widget):
+    directory_seed = reactive(0)
+
     def compose(self) -> ComposeResult:
-        yield DataTable()
+        yield Vertical(
+            Label("LIVING HUMAN DIRECTORY"),
+            DataTable(show_cursor=False, zebra_stripes=True)
+        )
     
     def on_mount(self) -> None:
         
@@ -61,10 +77,13 @@ class Directory(Widget):
                         ('zh_CN', 1),
                         ('ar_AA', 1)
                     ]))
-        Faker.seed(0)
+        
+        Faker.seed(self.directory_seed)
+        random.seed(self.directory_seed)
 
         rows = []
-        for _ in range(100):
+        for index in range(100):
+            print(index)
             id = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=16))
             gender = fake.random_element(elements=OrderedDict([("Male", 0.475),("Female", 0.475), ("Non-binary", 0.05)]))
             
@@ -80,7 +99,7 @@ class Directory(Widget):
                         ('ar_AA', 1)
                     ]))
             
-            
+
             if gender == "Male":
                 name = fake[locale].name_male()
             elif gender == "Female":
@@ -89,21 +108,33 @@ class Directory(Widget):
                 name = fake[locale].name_nonbinary()
 
             profile = fake.profile()
-            parents = fake[locale].first_name() + "," + fake[locale].first_name_female()
+            parents = fake[locale].first_name_male() + "," + fake[locale].first_name_female()
             birthday = profile['birthdate']
             location = str(profile['current_location'][0]) + " , " + str(profile['current_location'][1])
             blood_type = profile['blood_group']
 
-            rows.append((id, name, parents, birthday, gender, location, blood_type))
+            rows.append((index, id, name, parents, birthday, gender, location, blood_type))
 
 
         table = self.query_one(DataTable)
-        table.add_columns(*("ID", "Name", "Username", parents, "Gender", "Location", "Blood Type"))
-        table.add_rows(rows[1:])
+        table.add_columns(*("Index", "ID", "Name", "Parents","Birthday", "Gender", "Location", "Blood Type"))
+        table.add_rows(rows)
 
 class Viewer(Widget):
     def compose(self) -> ComposeResult:
-        yield Label("Test")
+        with Horizontal():
+            yield DataTable()
+            yield Center(Middle(Label("Test\nasd\nasdsad\ndadsasdasdsadsadsadad")))
+
+    def on_mount(self) -> None:
+        files = app_query(self, MainScreen).first().files
+
+        
+
+        table = self.query_one(DataTable)
+        table.add_columns(*("Index", "Name", "filename", "Starred"))
+        for index, file in enumerate(files):
+            table.add_row(index, file[0], file[1], file[2])
 
 
 class Mail(Widget):
@@ -128,20 +159,23 @@ class Help(Widget):
 
 class MainWidgetContainer(Widget):
     def compose(self) -> ComposeResult:
-        yield ScrollableContainer(id="mainscreen")
+        yield Container(id="mainwidgetcontainer")
     
 
 class TopHeader(Widget):
     def compose(self) -> ComposeResult:
-        yield Container(Label("ApertureOS", id="title"))
+        yield Container(Label("@ ApertureOS", id="title"))
         
 
 
 class MainScreen(Screen):
-    
+    files = reactive([
+        ("Elizabeth", "Elizabeth.prs", True)
+    ])
+
     def on_list_view_selected(self, event):
         widget = event.list_view.index
-        main_screen = self.query_one("#mainscreen")
+        main_widget_container = self.query_one("#mainwidgetcontainer")
         
         if widget == 0:
             mount_widget = Directory()
@@ -156,9 +190,9 @@ class MainScreen(Screen):
         elif widget == 5:
             mount_widget = Help()
 
-        if main_screen.children:
-            main_screen.children[0].remove()
-        main_screen.mount(mount_widget)
+        if main_widget_container.children:
+            main_widget_container.children[0].remove()
+        main_widget_container.mount(mount_widget)
 
 
     def compose(self) -> ComposeResult:
@@ -170,7 +204,7 @@ class MainScreen(Screen):
                 yield TerminalInput()
     
     def on_mount(self) -> ComposeResult:
-        main_screen = self.query_one("#mainscreen")
+        main_screen = self.query_one("#mainwidgetcontainer")
         main_screen.mount(Help())
 
 

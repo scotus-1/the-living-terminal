@@ -14,3 +14,8 @@ ApertureWelcome {
     padding-top: 5;
     align: center top;
 }
+
+Screen {
+    background: $background;
+    scrollbar-gutter: auto;
+}

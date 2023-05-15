@@ -13,7 +13,3 @@
     width: auto;
     height: auto;
 }
-
-Screen {
-    background: $background;
-}

@@ -1,9 +1,40 @@
-#mainscreen {
+#mainwidgetcontainer {
     border: ascii orange;
 }
 
 Directory {
     height: 100%;
-    width: 100%;  
+    width: 100%; 
+     
 }
 
+Directory DataTable {
+    height: 100%;
+    width: 100%;
+    padding: 2;
+    border: ascii deepskyblue;
+    scrollbar-size-vertical: 1;
+    background: $surface;
+}
+
+Direcotry Scrollbar {
+    scrollbar-size: 1 1;
+}
+Directory Label {
+    height: auto;
+    width: 100%;
+    text-align: center;
+    padding: 1;
+    text-style: bold;
+}
+
+Viewer DataTable {
+    height: 100%;
+    width: 50%;
+    padding: 2;
+}
+
+Viewer Center {
+    padding: 1;
+    border: ascii deepskyblue;
+}
