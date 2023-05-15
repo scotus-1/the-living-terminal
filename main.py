@@ -5,10 +5,14 @@ from textual.app import App
 from screens.WelcomeScreen import WelcomeScreen
 from screens.LoadingScreen import LoadingScreen
 
+import random
+import string
+from collections import OrderedDict
+from faker import Faker
 from textual.screen import Screen
 from textual.app import ComposeResult
 from textual.widget import Widget
-from textual.containers import Horizontal, Vertical, VerticalScroll, Container
+from textual.containers import Horizontal, Vertical, VerticalScroll, Container, ScrollableContainer
 from textual.widgets import Label, Input, MarkdownViewer, DataTable, ListView, ListItem, Switch
 
 class SideBar(Widget):
@@ -45,21 +49,57 @@ class Directory(Widget):
         yield DataTable()
     
     def on_mount(self) -> None:
-        ROWS = [
-    ("lane", "swimmer", "country", "time"),
-    (4, "Joseph Schooling", "Singapore", 50.39),
-    (2, "Michael Phelps", "United States", 51.14),
-    (5, "Chad le Clos", "South Africa", 51.14),
-    (6, "László Cseh", "Hungary", 51.14),
-    (3, "Li Zhuhao", "China", 51.26),
-    (8, "Mehdy Metella", "France", 51.58),
-    (7, "Tom Shields", "United States", 51.73),
-    (1, "Aleksandr Sadovnikov", "Russia", 51.84),
-    (10, "Darren Burns", "Scotland", 51.84),
-]
+        
+        fake = Faker(OrderedDict([
+                        ('en-US', 1),
+                        ('de_DE', 1),
+                        ('ja_JP', 1),
+                        ('es_ES', 1),
+                        ('fr_FR', 1),
+                         ('ko_KR', 1),
+                        ('ru_RU', 1),
+                        ('zh_CN', 1),
+                        ('ar_AA', 1)
+                    ]))
+        Faker.seed(0)
+
+        rows = []
+        for _ in range(100):
+            id = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=16))
+            gender = fake.random_element(elements=OrderedDict([("Male", 0.475),("Female", 0.475), ("Non-binary", 0.05)]))
+            
+            locale = fake.random_element(OrderedDict([
+                        ('en-US', 5),
+                        ('de_DE', 1),
+                        ('ja_JP', 1),
+                        ('es_ES', 1),
+                        ('fr_FR', 1),
+                        ('ko_KR', 1),
+                        ('ru_RU', 1),
+                        ('zh_CN', 1),
+                        ('ar_AA', 1)
+                    ]))
+            
+            
+            if gender == "Male":
+                name = fake[locale].name_male()
+            elif gender == "Female":
+                name = fake[locale].name_female()
+            elif gender == "Non-binary":
+                name = fake[locale].name_nonbinary()
+
+            profile = fake.profile()
+            parents = fake[locale].first_name() + "," + fake[locale].first_name_female()
+            birthday = profile['birthdate']
+            location = str(profile['current_location'][0]) + " , " + str(profile['current_location'][1])
+            blood_type = profile['blood_group']
+
+            rows.append((id, name, parents, birthday, gender, location, blood_type))
+
+
         table = self.query_one(DataTable)
-        table.add_columns(*ROWS[0])
-        table.add_rows(ROWS[1:])
+        table.add_columns(*("ID", "Name", "Username", parents, "Gender", "Location", "Blood Type"))
+        table.add_rows(rows[1:])
 
 class Viewer(Widget):
     def compose(self) -> ComposeResult:
@@ -88,15 +128,13 @@ class Help(Widget):
 
 class MainWidgetContainer(Widget):
     def compose(self) -> ComposeResult:
-        yield Container(id="mainscreen")
+        yield ScrollableContainer(id="mainscreen")
     
 
 class TopHeader(Widget):
     def compose(self) -> ComposeResult:
-        yield Horizontal(
-            Label("\[X]", id="title_button"),
-            Label("ApertureOS", id="title")
-        )
+        yield Container(Label("ApertureOS", id="title"))
+        
 
 
 class MainScreen(Screen):

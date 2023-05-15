@@ -1,4 +1,4 @@
-TopHeader > Horizontal {
+TopHeader Container {
     border: ascii orange;
     width: 100%;
     height: 100%;
@@ -8,13 +8,6 @@ TopHeader > Horizontal {
 #title {
     width: 100%;
     height: 100%;
-    padding-right: 5;
     content-align: center middle;
 }
 
-#title_button {
-    width: auto;
-    height: 100%;
-    content-align: center middle;
-    color: deepskyblue;
-}
