@@ -3,3 +3,7 @@ ProgressBar {
     width: 100%;
     align: center top;
 }
+
+LoadingScreen TextLog {
+    background: $background;
+}

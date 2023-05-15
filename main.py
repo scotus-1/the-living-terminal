@@ -7,18 +7,52 @@ from screens.LoadingScreen import LoadingScreen
 from textual.screen import Screen
 from textual.app import ComposeResult
 from textual.widget import Widget
-from textual.widgets import Header, Label, Input, MarkdownViewer, DataTable 
+from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.widgets import Label, Input, MarkdownViewer, DataTable, ListView, ListItem, Switch
+
+class SideBar(Widget):
+    def compose(self) -> ComposeResult:
+        yield VerticalScroll(
+        ListView(
+            ListItem(Label("\[directory]")),
+            ListItem(Label("\[viewer]")),
+            ListItem(Label("\[messenger]")),
+            ListItem(Label("\[clock]")),
+            ListItem(Label("\[radio]")),
+            ListItem(Label("\[help]")),
+        ),
+        Horizontal(
+            Label("TIME:"), Switch(animate=False)
+        ),
+        Horizontal(
+            Label("RF:"), Switch(animate=False)
+        ),
+        Vertical(Label("ver0.1.0-beta-3"), id="version-label")
+        )
+
+
+class TerminalInput(Widget):
+    def compose(self) -> ComposeResult:
+        yield Input()
+
+
+class TopHeader(Widget):
+    def compose(self) -> ComposeResult:
+        yield Horizontal(
+            Label("\[X]", id="title_button"),
+            Label("ApertureOS", id="title")
+        )
+
 
 class MainScreen(Screen):
     def compose(self) -> ComposeResult:
-        yield Header()
-
-
-
-
-
-
-
+        
+        yield TopHeader()
+        with Horizontal():
+            yield SideBar()
+            yield Label("Test")
+        yield TerminalInput()
+        
 
 
 class TheLivingTerminal(App):
@@ -47,3 +81,4 @@ class TheLivingTerminal(App):
 if __name__ == "__main__":
     app = TheLivingTerminal()
     app.run()
+

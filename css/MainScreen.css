@@ -1,0 +1,19 @@
+SideBar {
+    height: 100%;
+    width: 15%;
+    background: $background;
+}
+
+TerminalInput {
+    dock: bottom;
+    height: auto;
+    width: 100%;
+}
+
+TopHeader {
+    dock: top;
+    height: 5;
+    width: 100%;
+    background: $background;
+}
+

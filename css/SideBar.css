@@ -1,0 +1,36 @@
+SideBar > VerticalScroll {
+    width: 100%;
+    height: 100%;
+    border: ascii orange;
+}
+
+SideBar ListItem {
+    margin: 3;
+    color: white;
+}
+
+SideBar ListView {
+    height: auto;
+}
+
+SideBar Horizontal {
+    height: auto;
+    width: 100%;
+    content-align: center middle;
+    padding: 2 4
+}
+
+SideBar Horizontal Label {
+    width: 7;
+}
+
+SideBar Horizontal Switch {
+    border: none;
+    padding: 0;
+}
+
+#version-label Label {
+    width: 100%;
+    height: 100%;
+    content-align: right bottom;
+}
