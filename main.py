@@ -12,7 +12,7 @@ from textual.screen import Screen
 from textual.app import ComposeResult
 from textual.widget import Widget
 from textual.containers import Horizontal, Vertical, VerticalScroll, Center, Middle, Container
-from textual.widgets import Label, Input, DataTable, ListView, ListItem, Switch
+from textual.widgets import Label, Input, DataTable, ListView, ListItem, Switch, Tabs
 from textual.reactive import reactive
 
 
@@ -121,10 +121,13 @@ class Directory(Widget):
         table.add_rows(rows)
 
 class Viewer(Widget):
+    
     def compose(self) -> ComposeResult:
         with Horizontal():
-            yield DataTable()
-            yield Center(Middle(Label("Test\nasd\nasdsad\ndadsasdasdsadsadsadad")))
+            yield DataTable(show_cursor=False)
+            yield Center(
+                Middle(
+                Label("Test\nasd\nasdsad\ndadsasdasdsadsadsadad")))
 
     def on_mount(self) -> None:
         files = app_query(self, MainScreen).first().files
@@ -139,7 +142,9 @@ class Viewer(Widget):
 
 class Mail(Widget):
     def compose(self) -> ComposeResult:
-        yield Label("Test")
+        yield Horizontal(
+            Tabs()
+        )
 
 
 class Clock(Widget):
