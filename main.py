@@ -208,6 +208,7 @@ class TopHeader(Widget):
         
 
 class MainScreen(Screen):
+    current_widget = reactive(5)
     files = reactive([
         ("Elizabeth", "Elizabeth.prs", True)
     ])
@@ -216,6 +217,9 @@ class MainScreen(Screen):
 
     def on_list_view_selected(self, event):
         widget = event.list_view.index
+        if widget == self.current_widget: return
+
+        self.current_widget = widget
         main_widget_container = self.query_one("#mainwidgetcontainer")
         
         if widget == 0:
