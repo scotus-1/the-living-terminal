@@ -11,7 +11,8 @@ Directory {
 Directory DataTable {
     height: 100%;
     width: 100%;
-    padding: 2;
+    margin: 1; 
+    padding: 1;
     border: ascii deepskyblue;
     scrollbar-size-vertical: 1;
     background: $surface;
@@ -20,6 +21,7 @@ Directory DataTable {
 Direcotry Scrollbar {
     scrollbar-size: 1 1;
 }
+
 Directory Label {
     height: auto;
     width: 100%;
@@ -37,4 +39,49 @@ Viewer DataTable {
 Viewer Center {
     padding: 1;
     border: ascii deepskyblue;
+}
+
+Mail Tabs {
+    margin: 2;
+    height: 3;
+}
+
+Mail ContentSwitcher {
+    border: ascii deepskyblue;
+    margin: 2;
+    height: 1fr;
+}
+
+Clock Vertical {
+    height: 100%;
+    width: 100%;
+}
+
+Clock Label {
+    height: 50%;
+    width: 100%;
+    margin: 1;
+    content-align: center bottom;
+}
+
+Clock Horizontal {
+    height: 50%;
+    width: 100%;
+    margin: 1;
+}
+
+Clock RadioButton {
+    width: 1fr;
+}
+
+#past_button {
+    content-align: right top;
+}
+
+#present_button {
+    content-align: center top;
+}
+
+#future_button {
+    content-align: left top;
 }

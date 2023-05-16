@@ -12,7 +12,7 @@ from textual.screen import Screen
 from textual.app import ComposeResult
 from textual.widget import Widget
 from textual.containers import Horizontal, Vertical, VerticalScroll, Center, Middle, Container
-from textual.widgets import Label, Input, DataTable, ListView, ListItem, Switch, Tabs
+from textual.widgets import Label, Input, DataTable, ListView, ListItem, Switch, TabbedContent, TabPane, RadioButton
 from textual.reactive import reactive
 
 
@@ -38,13 +38,14 @@ class SideBar(Widget):
             ListItem(Label("\[help]")),
         initial_index=5),
         Horizontal(
-            Label("TIME:"), Switch(animate=False)
+            Label("TIME:"), Switch(animate=False, id="time_switch")
         ),
         Horizontal(
-            Label("RF:"), Switch(animate=False)
+            Label("RF:"), Switch(animate=False, id="rf_switch")
         ),
         Vertical(Label("ver0.1.0-beta-3"), id="version-label")
         )
+
 
 
 class TerminalInput(Widget):
@@ -83,7 +84,6 @@ class Directory(Widget):
 
         rows = []
         for index in range(100):
-            print(index)
             id = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=16))
             gender = fake.random_element(elements=OrderedDict([("Male", 0.475),("Female", 0.475), ("Non-binary", 0.05)]))
             
@@ -121,19 +121,17 @@ class Directory(Widget):
         table.add_rows(rows)
 
 class Viewer(Widget):
-    
     def compose(self) -> ComposeResult:
         with Horizontal():
             yield DataTable(show_cursor=False)
             yield Center(
                 Middle(
-                Label("Test\nasd\nasdsad\ndadsasdasdsadsadsadad")))
+                Label("Test\nasd\nasdsad\ndadsasdasdsadsadsadad")
+                )
+            )
 
     def on_mount(self) -> None:
         files = app_query(self, MainScreen).first().files
-
-        
-
         table = self.query_one(DataTable)
         table.add_columns(*("Index", "Name", "filename", "Starred"))
         for index, file in enumerate(files):
@@ -142,14 +140,51 @@ class Viewer(Widget):
 
 class Mail(Widget):
     def compose(self) -> ComposeResult:
-        yield Horizontal(
-            Tabs()
-        )
-
+        with Container():
+            with TabbedContent():
+                with TabPane("Message"):
+                    yield Label("Test")
+        
 
 class Clock(Widget):
     def compose(self) -> ComposeResult:
-        yield Label("Test")
+        time_on = not app_query(self, MainScreen).first().time_on
+        print(time_on)
+
+        yield Vertical(
+            Label("Clock"),
+            Horizontal(
+                RadioButton("past", id="past_button", disabled=time_on),
+                RadioButton("present", id="present_button", disabled=time_on),
+                RadioButton("future", id="future_button", disabled=time_on)
+            )
+        )
+    
+
+    def on_mount(self):
+        time_setting = app_query(self, MainScreen).first().time_setting
+        if time_setting == "past":
+            self.query_one("#past_button").value = True
+        elif time_setting == "present":
+            self.query_one("#present_button").value = True
+        elif time_setting == "future":
+            self.query_one("#future_button").value = True
+
+    def on_radio_button_changed(self, message:RadioButton.Changed):
+        for radio_button in self.query():
+            if not radio_button.id == message.radio_button.id:
+                with radio_button.prevent(RadioButton.Changed):
+                    radio_button.value=False
+            else:
+                if message.radio_button.value == False: message.radio_button.value = True
+                
+                if message.radio_button.id == "past_button":
+                    app_query(self, MainScreen).first().time_setting = "past"
+                elif message.radio_button.id == "present_button":
+                    app_query(self, MainScreen).first().time_setting = "present"
+                elif message.radio_button.id == "future_button":
+                    app_query(self, MainScreen).first().time_setting = "future"
+                
 
 
 class Radio(Widget):
@@ -172,11 +207,12 @@ class TopHeader(Widget):
         yield Container(Label("@ ApertureOS", id="title"))
         
 
-
 class MainScreen(Screen):
     files = reactive([
         ("Elizabeth", "Elizabeth.prs", True)
     ])
+    time_setting = reactive("present")
+    time_on = reactive(False)
 
     def on_list_view_selected(self, event):
         widget = event.list_view.index
@@ -199,7 +235,19 @@ class MainScreen(Screen):
             main_widget_container.children[0].remove()
         main_widget_container.mount(mount_widget)
 
+    def on_switch_changed(self, message:Switch.Changed):
+        switch = message.switch
+        
+        if switch.id == "time_switch" and switch.value == False:
+            for radio_button in self.query("Clock RadioButton"):
+                radio_button.disabled = True
+                not self.time_on
+        elif switch.id == "time_switch" and switch.value == True:
+            for radio_button in self.query("Clock RadioButton"):
+                radio_button.disabled = False
+                not self.time_on
 
+        print("test")
     def compose(self) -> ComposeResult:
         yield TopHeader()
         with Horizontal():
