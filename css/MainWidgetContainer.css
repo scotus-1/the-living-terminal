@@ -116,7 +116,7 @@ Radio Horizontal {
 }
 
 Help {
-    margin: 1 2;
-    padding: 1;
+    margin: 1;
+    padding: 2 1;
     border: ascii deepskyblue;
 }

@@ -11,6 +11,7 @@ from textual.screen import Screen
 
 class MainScreen(Screen):
     current_widget = reactive(5)
+    directory_seed = reactive(0)
     files = reactive([
         ("Elizabeth", "Elizabeth.prs", True)
     ])
@@ -70,9 +71,29 @@ class MainScreen(Screen):
 
         print("test")
 
-    def on_input_submitted():
-        print("yeehaw")
+    def on_input_submitted(self, message):
+        command = message.input.value.strip()
+        command = command.split(" ")
 
+        try: 
+            assert command != [""]
+        except AssertionError:
+            message.input.value = ""
+            return
+
+        invoked_command = command[0]
+
+        if invoked_command == "filter":
+            try:
+                filter = command[1]
+                filter_string = command[2]
+            except IndexError:
+                message.input.value = ""
+                return
+        
+
+        message.input.value = ""
+        
 
     def compose(self) -> ComposeResult:
         yield TopHeader()
