@@ -1,0 +1,3 @@
+- Default Focus Input
+- Focus Input when clicking on outside box
+- Reactive Header

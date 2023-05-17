@@ -6,9 +6,9 @@ from textual.app import ComposeResult, App
 from textual.widget import Widget
 from textual.containers import Horizontal, Vertical, Center, Middle, Container, VerticalScroll, ScrollableContainer
 from textual.widgets import Label, DataTable, TabbedContent, TabPane, RadioButton, Input, Markdown
-from textual.reactive import reactive
 from main import MainScreen
 from components import content
+
 
 def app_query(widget: Widget, query):
     current_parent = widget
@@ -18,7 +18,9 @@ def app_query(widget: Widget, query):
         
         if isinstance(current_parent, App):
             return current_parent.query(query)
-        
+
+
+
 
 class Directory(Widget):
     def generate_filler_person(self, fake: Faker):
@@ -56,7 +58,7 @@ class Directory(Widget):
     def compose(self) -> ComposeResult:
         yield Vertical(
             Label("LIVING HUMAN DIRECTORY"),
-            DataTable(show_cursor=False, zebra_stripes=True)
+            DataTable(show_cursor=False, zebra_stripes=True, id="directorytable")
         )
     
     def on_mount(self) -> None:
@@ -118,21 +120,64 @@ class Directory(Widget):
 
 class Viewer(Widget):
     def compose(self) -> ComposeResult:
+        
         with Horizontal():
-            yield DataTable(show_cursor=False)
+            yield DataTable(show_cursor=True)
             yield Center(
-                Middle(
-                Label("Test\nasd\nasdsad\ndadsasdasdsadsadsadad")
-                )
+                Middle(id="content_container")
             )
 
     def on_mount(self) -> None:
         files = app_query(self, MainScreen).first().files
         table = self.query_one(DataTable)
+        table.cursor_type = "row"
         table.add_columns(*("Index", "Name", "filename", "Starred"))
-        for index, file in enumerate(files):
-            table.add_row(index, file[0], file[1], file[2])
 
+
+        for index, file in enumerate(files):
+            table.add_row(index, file.name, file.filename, file.starred)
+        
+        selected_file_index = app_query(self, MainScreen).first().selected_file
+        table.cursor_coordinate = (selected_file_index, 0)
+
+        time_on = app_query(self, MainScreen).first().time_on
+        
+        main_container = self.query("#content_container").first()
+        
+        if time_on:
+            time_setting = app_query(self, MainScreen).first().time_setting
+            if time_setting == "past":
+                label_content = files[selected_file_index].past
+            elif time_setting == "present":
+                label_content = files[selected_file_index].present
+            elif time_setting == "future":
+                label_content = files[selected_file_index].future
+        else:
+            label_content = files[selected_file_index].present
+        
+        main_container.mount(Label(label_content))
+    
+    def on_data_table_row_selected(self, message):
+        app_query(self, MainScreen).first().selected_file = message.cursor_row
+
+        
+        time_on = app_query(self, MainScreen).first().time_on
+        files = app_query(self, MainScreen).first().files
+        selected_file_index = message.cursor_row
+        if time_on:
+            time_setting = app_query(self, MainScreen).first().time_setting
+            if time_setting == "past":
+                label_content = files[selected_file_index].past
+            elif time_setting == "present":
+                label_content = files[selected_file_index].present
+            elif time_setting == "future":
+                label_content = files[selected_file_index].future
+        else:
+            label_content = files[selected_file_index].present
+        
+        main_container = self.query("#content_container").first()
+        main_container.children[0].remove()
+        main_container.mount(Label(label_content))
 
 class Mail(Widget):
     def compose(self) -> ComposeResult:
@@ -183,7 +228,6 @@ class Clock(Widget):
                     app_query(self, MainScreen).first().time_setting = "future"
                 
 
-
 class Radio(Widget):
     def compose(self) -> ComposeResult:
         rf_on = not app_query(self, MainScreen).first().rf_on
@@ -205,9 +249,14 @@ class Radio(Widget):
 
     def on_input_changed(self, message):
         changed_input = message.input
+        
         if changed_input.id == "radio_code_input":
+            if len(changed_input.value) > 6:
+                changed_input.value = changed_input.value[:6]
             app_query(self, MainScreen).first().radio_code = changed_input.value
         elif changed_input.id == "radio_frequency_input":
+            if len(changed_input.value) > 9:
+                changed_input.value = changed_input.value[:9]
             app_query(self, MainScreen).first().radio_frequency = changed_input.value
 
 

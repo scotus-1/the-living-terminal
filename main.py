@@ -4,20 +4,57 @@ from textual.app import App
 from screens.WelcomeScreen import WelcomeScreen
 from screens.LoadingScreen import LoadingScreen
 
-from components.MainWidgets import *
+import random
+from faker import Faker
+from components import MainWidgets as mw
 from components.MainScreenComponents import *
 from textual.screen import Screen
-from textual.reactive import var
+from textual.reactive import var, reactive
+from textual.css.query import NoMatches
+from textual.widgets.data_table import RowDoesNotExist
 import string
 import decimal
+
+class PrsFile:
+    def __init__(self, name, id, filename=None, starred=False):
+        self.name = name
+        if filename: self.filename = filename
+        else: self.filename = name + ".prs"
+        self.starred = starred
+        
+        self.base_seed = name = name + id
+
+        fake = Faker()
+
+        current_seed = self.base_seed + "past"
+        Faker.seed(current_seed)
+        random.seed(current_seed)
+        self.past = ""
+        for sentence in fake.sentences(random.randint(1,10)):
+            self.past = self.past + sentence + "\n"
+
+        current_seed = self.base_seed + "present"
+        Faker.seed(current_seed)
+        random.seed(current_seed)
+        self.present = ""
+        for sentence in fake.sentences(random.randint(1,10)):
+            self.present = self.present + sentence + "\n"
+        
+        current_seed = self.base_seed + "future"
+        Faker.seed(current_seed)
+        random.seed(current_seed)
+        self.future = ""
+        for sentence in fake.sentences(random.randint(1,10)):
+            self.future = self.future + sentence + "\n"
 
 
 class MainScreen(Screen):
     current_widget = reactive(5)
     directory_filter = var((None, ""))
     directory_seed = var(0)
+    selected_file = reactive(0)
     files = reactive([
-        ("Elizabeth", "Elizabeth.prs", True)
+        PrsFile("Elizabeth", "liz.prs", "liz", True)
     ])
     time_setting = reactive("present")
     time_on = reactive(False)
@@ -33,17 +70,17 @@ class MainScreen(Screen):
         main_widget_container = self.query_one("#mainwidgetcontainer")
         
         if widget == 0:
-            mount_widget = Directory()
+            mount_widget = mw.Directory()
         elif widget == 1:
-            mount_widget = Viewer()
+            mount_widget = mw.Viewer()
         elif widget == 2:
-            mount_widget = Mail()
+            mount_widget = mw.Mail()
         elif widget == 3:
-            mount_widget = Clock()
+            mount_widget = mw.Clock()
         elif widget == 4:
-            mount_widget = Radio()
+            mount_widget = mw.Radio()
         elif widget == 5:
-            mount_widget = Help()
+            mount_widget = mw.Help()
 
         if main_widget_container.children:
             main_widget_container.children[0].remove()
@@ -51,18 +88,25 @@ class MainScreen(Screen):
 
     def on_switch_changed(self, message:Switch.Changed):
         switch = message.switch
+        if switch.id == "time_switch":
+            if switch.value == False:
+                self.time_on = not self.time_on
+                for radio_button in self.query("Clock RadioButton"):
+                    radio_button.disabled = True
+                    
+            elif switch.value == True:
+                self.time_on = not self.time_on
+                for radio_button in self.query("Clock RadioButton"):
+                    radio_button.disabled = False
+
+            main_widget_container = self.query_one("#mainwidgetcontainer")
+            
+            if isinstance(main_widget_container.children[0], mw.Viewer):
+                main_widget_container.children[0].remove()
+                main_widget_container.mount(mw.Viewer())
+            
         
-        if switch.id == "time_switch" and switch.value == False:
-            self.time_on = not self.time_on
-            for radio_button in self.query("Clock RadioButton"):
-                radio_button.disabled = True
-                
-        elif switch.id == "time_switch" and switch.value == True:
-            self.time_on = not self.time_on
-            for radio_button in self.query("Clock RadioButton"):
-                radio_button.disabled = False
-        
-        elif switch.id == "rf_switch" and switch.value == False:
+        if switch.id == "rf_switch" and switch.value == False:
             self.rf_on = not self.rf_on
             for rf_input in self.query("Radio Input"):
                 rf_input.disabled = True
@@ -95,6 +139,19 @@ class MainScreen(Screen):
                 else:
                     self.directory_filter = (command[1].lower(), command[2].lower())
             except IndexError:
+                with message.input.prevent(Input.Changed):
+                    message.input.value = ""
+                return
+            
+        elif invoked_command == "download":
+            try:
+                table = self.query_one("#directorytable")
+                row_info = table.get_row_at(int(command[1]))
+                name = row_info[2]
+                id = row_info[1]
+                self.files.append(PrsFile(name, id))
+
+            except (IndexError, NoMatches, RowDoesNotExist):
                 with message.input.prevent(Input.Changed):
                     message.input.value = ""
                 return
@@ -142,7 +199,6 @@ class MainScreen(Screen):
     
 
     def watch_directory_filter(self, filter):
-        
         if filter == (None, ""):
             self.directory_seed = 0
         else:
@@ -150,9 +206,9 @@ class MainScreen(Screen):
 
         print(self.directory_seed)
         main_widget_container = self.query_one("#mainwidgetcontainer")
-        if isinstance(main_widget_container.children[0], Directory):
+        if isinstance(main_widget_container.children[0], mw.Directory):
             main_widget_container.children[0].remove()
-            main_widget_container.mount(Directory())
+            main_widget_container.mount(mw.Directory())
 
 
     def compose(self) -> ComposeResult:
@@ -166,7 +222,7 @@ class MainScreen(Screen):
 
     def on_mount(self) -> ComposeResult:
         main_screen = self.query_one("#mainwidgetcontainer")
-        main_screen.mount(Help())
+        main_screen.mount(mw.Help())
 
 
 class TheLivingTerminal(App):

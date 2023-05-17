@@ -49,7 +49,7 @@ APERTURE_HELP = """
 
         > Viewer: Can view or *edit* .prs files
             - `input \[input_string]` : Alter the currently selected file by inputing an input string
-            - `reset` : Reset the currently selected file if it was modified
+                - `reset` : Reset the currently selected file if it was modified
 
         > Mail: View Messages
 
@@ -58,5 +58,5 @@ APERTURE_HELP = """
 
         > Radio: Change the current radio code and radio frequency
             - Can be disabled via the sidebar switch
-            - Alters search results 
+            - May alter the application
 """
