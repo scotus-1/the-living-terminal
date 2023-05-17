@@ -47,6 +47,31 @@ class PrsFile:
         for sentence in fake.sentences(random.randint(1,10)):
             self.future = self.future + sentence + "\n"
 
+    def regenerate(self, input_seed):
+        fake = Faker()
+
+        current_seed = self.base_seed + "past" + input_seed
+        
+        Faker.seed(current_seed)
+        random.seed(current_seed)
+
+        self.past = ""
+        for sentence in fake.sentences(random.randint(1,10)):
+            self.past = self.past + sentence + "\n"
+
+        current_seed = self.base_seed + "present" + input_seed
+        Faker.seed(current_seed)
+        random.seed(current_seed)
+        self.present = ""
+        for sentence in fake.sentences(random.randint(1,10)):
+            self.present = self.present + sentence + "\n"
+        
+        current_seed = self.base_seed + "future" + input_seed
+        Faker.seed(current_seed)
+        random.seed(current_seed)
+        self.future = ""
+        for sentence in fake.sentences(random.randint(1,10)):
+            self.future = self.future + sentence + "\n"
 
 class MainScreen(Screen):
     current_widget = reactive(5)
@@ -56,9 +81,11 @@ class MainScreen(Screen):
     files = reactive([
         PrsFile("Elizabeth", "liz.prs", "liz", True)
     ])
+    input_seed = reactive("")
     time_setting = reactive("present")
     time_on = reactive(False)
     rf_on = reactive(False)
+
     radio_code = reactive("")
     radio_frequency = reactive("")
 
@@ -132,7 +159,10 @@ class MainScreen(Screen):
 
         invoked_command = command[0]
 
-        if invoked_command == "filter":
+        main_widget_container = self.query_one("#mainwidgetcontainer")
+        current_widget = main_widget_container.children[0]
+
+        if invoked_command == "filter" and isinstance(current_widget, mw.Directory):
             try:
                 if command[1] == "reset":
                     self.directory_filter = (None, "")
@@ -143,7 +173,7 @@ class MainScreen(Screen):
                     message.input.value = ""
                 return
             
-        elif invoked_command == "download":
+        elif invoked_command == "download" and isinstance(current_widget, mw.Directory):
             try:
                 table = self.query_one("#directorytable")
                 row_info = table.get_row_at(int(command[1]))
@@ -155,6 +185,32 @@ class MainScreen(Screen):
                 with message.input.prevent(Input.Changed):
                     message.input.value = ""
                 return
+        
+        elif invoked_command == "input" and isinstance(current_widget, mw.Viewer):
+            try:
+                file = self.files[self.selected_file]
+                if command[1] == "reset": file.regenerate("")
+                else: file.regenerate(command[1])
+
+                main_container = self.query("#content_container").first()
+                main_container.children[0].remove()
+                if self.time_on:
+                    time_setting = self.time_setting
+                    if time_setting == "past":
+                        label_content = file.past
+                    elif time_setting == "present":
+                        label_content = file.present
+                    elif time_setting == "future":
+                        label_content = file.future
+                else:
+                    label_content = file.present
+
+                main_container.mount(Label(label_content))
+            except IndexError: 
+                with message.input.prevent(Input.Changed):
+                    message.input.value = ""
+                return
+
 
         with message.input.prevent(Input.Changed):
             message.input.value = ""
