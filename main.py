@@ -7,6 +7,8 @@ from screens.LoadingScreen import LoadingScreen
 from components.MainWidgets import *
 from components.MainScreenComponents import *
 from textual.screen import Screen
+import string
+import decimal
 
 
 class MainScreen(Screen):
@@ -96,11 +98,48 @@ class MainScreen(Screen):
                 message.input.value = ""
                 return
         
-
         message.input.value = ""
     
     def watch_directory_filter(self):
-        pass
+        filter = self.directory_filter[0]
+        filter_string = self.directory_filter[1]
+        try: 
+            if filter == "id":
+                assert len(filter_string) == 16
+                allowed = set(string.ascii_lowercase + string.ascii_uppercase + string.digits)
+                assert set(filter_string) <= allowed
+            elif filter == "parents":
+                parents = filter_string.split(",")
+                allowed = set(string.ascii_lowercase + string.ascii_uppercase)
+                assert len(parents) == 2
+                assert set(parents[0]) <= allowed
+                assert set(parents[1]) <= allowed
+                assert len(parents[0]) < 15
+                assert len(parents[1]) < 15
+            elif filter == "birthday":
+                birthday = filter_string.split("-")
+                assert len(birthday) == 3
+                assert len(birthday[0]) == 4 and int(birthday[0]) >= 1900 and int(birthday[0]) <= 2023
+                assert len(birthday[1]) <= 2 and int(birthday[1]) >= 1 and int(birthday[1]) <= 12
+                assert len(birthday[2]) <= 2 and int(birthday[2]) >= 1 and int(birthday[2]) <= 31
+            elif filter == "location":
+                location = filter_string.split(",")
+                assert len(location) == 2
+                try:
+                    assert decimal.Decimal(location[0]) >= 0 and decimal.Decimal(location[0]) <= 100
+                    assert decimal.Decimal(location[1]) >= 0 and decimal.Decimal(location[1]) <= 100
+                except:
+                    raise AssertionError
+        except AssertionError:
+            self.directory_filter = (None, "")
+            self.directory_seed = 0
+            return
+
+        main_widget_container = self.query_one("#mainwidgetcontainer")
+        if isinstance(main_widget_container.children[0], Directory):
+            main_widget_container.children[0].remove()
+            main_widget_container.mount(Directory())
+        
 
     def compose(self) -> ComposeResult:
         yield TopHeader()
