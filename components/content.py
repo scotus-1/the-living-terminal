@@ -39,7 +39,7 @@ APERTURE_HELP = """
         > Directory: The Living Directory lists every human being in the recent time period 
             - `filter \[filter] \[filter_string]` : Filters or searches people (dead or alive) in the recent time period
                 - ex: `filter blood_type O+`
-                - filters and filter_string (invalid filters will simply be thrown away): 
+                - filters and filter_string (invalid filters will reset the filter): 
                     - id {id}
                     - parents {father_first_name,mother_firstname}
                     - birthday {year-month-day}

@@ -7,14 +7,15 @@ from screens.LoadingScreen import LoadingScreen
 from components.MainWidgets import *
 from components.MainScreenComponents import *
 from textual.screen import Screen
+from textual.reactive import var
 import string
 import decimal
 
 
 class MainScreen(Screen):
     current_widget = reactive(5)
-    directory_filter = reactive((None, ""))
-    directory_seed = reactive(0)
+    directory_filter = var((None, ""))
+    directory_seed = var(0)
     files = reactive([
         ("Elizabeth", "Elizabeth.prs", True)
     ])
@@ -74,14 +75,15 @@ class MainScreen(Screen):
 
         print("test")
 
-    def on_input_submitted(self, message):
+    def on_input_submitted(self, message: Input.Submitted):
         command = message.input.value.strip()
         command = command.split(" ")
 
         try: 
             assert command != [""]
         except AssertionError:
-            message.input.value = ""
+            with message.input.prevent(Input.Changed):
+                message.input.value = ""
             return
 
         invoked_command = command[0]
@@ -90,19 +92,19 @@ class MainScreen(Screen):
             try:
                 if command[1] == "reset":
                     self.directory_filter = (None, "")
-                    self.directory_seed = 0
                 else:
                     self.directory_filter = (command[1].lower(), command[2].lower())
-                    self.directory_seed = command[2] + "funee_monkey" + command[1]
             except IndexError:
-                message.input.value = ""
+                with message.input.prevent(Input.Changed):
+                    message.input.value = ""
                 return
-        
-        message.input.value = ""
+
+        with message.input.prevent(Input.Changed):
+            message.input.value = ""
     
-    def watch_directory_filter(self):
-        filter = self.directory_filter[0]
-        filter_string = self.directory_filter[1]
+    def validate_directory_filter(self, directory_filter):
+        filter = directory_filter[0]
+        filter_string = directory_filter[1]
         try: 
             if filter == "id":
                 assert len(filter_string) == 16
@@ -130,16 +132,28 @@ class MainScreen(Screen):
                     assert decimal.Decimal(location[1]) >= 0 and decimal.Decimal(location[1]) <= 100
                 except:
                     raise AssertionError
+            else:
+                return (None, "")
+            
+            return (filter, filter_string)
+        
         except AssertionError:
-            self.directory_filter = (None, "")
-            self.directory_seed = 0
-            return
+            return (None, "")
+    
 
+    def watch_directory_filter(self, filter):
+        
+        if filter == (None, ""):
+            self.directory_seed = 0
+        else:
+            self.directory_seed = filter[0] + filter[1]
+
+        print(self.directory_seed)
         main_widget_container = self.query_one("#mainwidgetcontainer")
         if isinstance(main_widget_container.children[0], Directory):
             main_widget_container.children[0].remove()
             main_widget_container.mount(Directory())
-        
+
 
     def compose(self) -> ComposeResult:
         yield TopHeader()
