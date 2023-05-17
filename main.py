@@ -15,6 +15,78 @@ from textual.widgets.data_table import RowDoesNotExist
 import string
 import decimal
 
+
+class Zalgo():
+	def __init__(self):
+		self.numAccentsUp = (1, 3)
+		self.numAccentsDown = (1,3)
+		self.numAccentsMiddle = (1,2)
+		self.maxAccentsPerLetter = 3
+		#downward going diacritics
+		self.dd = ['̖',' ̗',' ̘',' ̙',' ̜',' ̝',' ̞',' ̟',' ̠',' ̤',' ̥',' ̦',' ̩',' ̪',' ̫',' ̬',' ̭',' ̮',' ̯',' ̰',' ̱',' ̲',' ̳',' ̹',' ̺',' ̻',' ̼',' ͅ',' ͇',' ͈',' ͉',' ͍',' ͎',' ͓',' ͔',' ͕',' ͖',' ͙',' ͚',' ',]
+		#upward diacritics
+		self.du = [' ̍',' ̎',' ̄',' ̅',' ̿',' ̑',' ̆',' ̐',' ͒',' ͗',' ͑',' ̇',' ̈',' ̊',' ͂',' ̓',' ̈́',' ͊',' ͋',' ͌',' ̃',' ̂',' ̌',' ͐',' ́',' ̋',' ̏',' ̽',' ̉',' ͣ',' ͤ',' ͥ',' ͦ',' ͧ',' ͨ',' ͩ',' ͪ',' ͫ',' ͬ',' ͭ',' ͮ',' ͯ',' ̾',' ͛',' ͆',' ̚',]
+		#middle diacritics
+		self.dm = [' ̕',' ̛',' ̀',' ́',' ͘',' ̡',' ̢',' ̧',' ̨',' ̴',' ̵',' ̶',' ͜',' ͝',' ͞',' ͟',' ͠',' ͢',' ̸',' ̷',' ͡',]
+
+	def zalgofy(self, text):
+		'''
+		Zalgofy a string
+		'''
+		#get the letters list
+		letters = list(text) #['t','e','s','t',' ','t',...]
+		#print(letters)
+		newWord = ''
+		newLetters = []
+					
+		#for each letter, add some diacritics of all varieties
+		for letter in letters: #'p', etc...
+			a = letter #create a dummy letter
+
+			#skip this letter we can't add a diacritic to it
+			if not a.isalpha():
+				newLetters.append(a)
+				continue
+
+			numAccents = 0
+			numU = random.randint(self.numAccentsUp[0],self.numAccentsUp[1])
+			numD = random.randint(self.numAccentsDown[0],self.numAccentsDown[1])
+			numM = random.randint(self.numAccentsMiddle[0],self.numAccentsMiddle[1])
+			#Try to add accents to the letter, will add an upper, lower, or middle accent randomly until
+			#either numAccents == self.maxAccentsPerLetter or we have added the maximum upper, middle and lower accents. Denoted
+			#by numU, numD, and numM
+			while numAccents < self.maxAccentsPerLetter and numU + numM + numD != 0:
+				randint = random.randint(0,2) # randomly choose what accent type to add
+				if randint == 0:
+					if numU > 0:
+						a = self.combineWithDiacritic(a, self.du)
+						numAccents += 1
+						numU -= 1
+				elif randint == 1:
+					if numD > 0:
+						a = self.combineWithDiacritic(a, self.dd)
+						numD -= 1                    
+						numAccents += 1
+				else:
+					if numM > 0:
+						a = self.combineWithDiacritic(a, self.dm)
+						numM -= 1                    
+						numAccents += 1
+						
+			#a = a.replace(" ","") #remove any spaces, this also gives it the zalgo text look
+			#print('accented a letter: ' + a)
+			newLetters.append(a)
+						
+		newWord = ''.join(newLetters)
+		return newWord
+
+	def combineWithDiacritic(self, letter, diacriticList):
+		'''
+		Combines letter and a random character from diacriticList
+		'''
+		return letter.strip() + diacriticList[random.randrange(0, len(diacriticList))].strip()
+
+
 class PrsFile:
     def __init__(self, name, id, filename=None, starred=False):
         self.name = name
@@ -29,23 +101,23 @@ class PrsFile:
         current_seed = self.base_seed + "past"
         Faker.seed(current_seed)
         random.seed(current_seed)
-        self.past = ""
+        self._past = ""
         for sentence in fake.sentences(random.randint(1,10)):
-            self.past = self.past + sentence + "\n"
+            self._past = self._past + sentence + "\n"
 
         current_seed = self.base_seed + "present"
         Faker.seed(current_seed)
         random.seed(current_seed)
-        self.present = ""
+        self._present = ""
         for sentence in fake.sentences(random.randint(1,10)):
-            self.present = self.present + sentence + "\n"
+            self._present = self._present + sentence + "\n"
         
         current_seed = self.base_seed + "future"
         Faker.seed(current_seed)
         random.seed(current_seed)
-        self.future = ""
+        self._future = ""
         for sentence in fake.sentences(random.randint(1,10)):
-            self.future = self.future + sentence + "\n"
+            self._future = self._future + sentence + "\n"
 
     def regenerate(self, input_seed):
         fake = Faker()
@@ -55,23 +127,57 @@ class PrsFile:
         Faker.seed(current_seed)
         random.seed(current_seed)
 
-        self.past = ""
+        self._past = ""
         for sentence in fake.sentences(random.randint(1,10)):
-            self.past = self.past + sentence + "\n"
+            self._past = self._past + sentence + "\n"
 
         current_seed = self.base_seed + "present" + input_seed
         Faker.seed(current_seed)
         random.seed(current_seed)
-        self.present = ""
+        self._present = ""
         for sentence in fake.sentences(random.randint(1,10)):
-            self.present = self.present + sentence + "\n"
+            self._present = self._present + sentence + "\n"
         
         current_seed = self.base_seed + "future" + input_seed
         Faker.seed(current_seed)
         random.seed(current_seed)
-        self.future = ""
+        self._future = ""
         for sentence in fake.sentences(random.randint(1,10)):
-            self.future = self.future + sentence + "\n"
+            self._future = self._future + sentence + "\n"
+             
+
+    def scramble(self, text):
+        random.seed(self.base_seed + text)
+        zalgo = Zalgo()
+        new_text = ""
+        random_letters = string.ascii_uppercase + string.ascii_lowercase + string.digits + string.punctuation
+        for letter in text:
+            if letter == " " and random.choices([True, False], weights=[4, 6])[0]:
+                letter = zalgo.zalgofy(letter)
+            elif letter == "\n":
+                letter = letter
+            else:
+                if random.choices([True, False], weights=[2.5, 7.5])[0]:
+                    letter = random.choice(random_letters)
+                if random.choices([True, False], weights=[6, 4])[0]:
+                    letter = zalgo.zalgofy(letter)
+            
+            new_text += letter
+        
+        return new_text
+            
+            
+    @property
+    def past(self):
+        return self.scramble(self._past)
+
+    @property
+    def present(self):
+        return self.scramble(self._present)
+
+    @property
+    def future(self):
+        return self.scramble(self._future)
 
 class MainScreen(Screen):
     current_widget = reactive(5)
