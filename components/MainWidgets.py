@@ -76,14 +76,44 @@ class Directory(Widget):
         directory_seed = app_query(self, MainScreen).first().directory_seed
         Faker.seed(directory_seed)
         random.seed(directory_seed)
+        
+        item_count = 100
+        directory_filter = app_query(self, MainScreen).first().directory_filter
+        table = self.query_one(DataTable)
 
-        for index in range(100):
+        for index in range(item_count):
             rows.append((index, *self.generate_filler_person(fake)))
 
+        new_rows = rows
+        if directory_filter[0] != None:
+            if directory_filter[0] == "parents":
+                new_rows = []
+                for row in rows:
+                    row = list(row)
+                    row[3] = directory_filter[1]
+                    row = tuple(row)
+                    new_rows.append(row)
+                new_rows = new_rows[:random.randint(7,11)]
 
-        table = self.query_one(DataTable)
+            elif directory_filter[0] == "birthday":
+                new_rows = []
+                for row in rows:
+                    row = list(row)
+                    row[4] = directory_filter[1]
+                    row = tuple(row)
+                    new_rows.append(row)
+                new_rows = new_rows[:random.randint(24,57)]
+
+            elif directory_filter[0] == "location":
+                new_rows = []
+                pass
+
+            elif directory_filter[0] == "id":
+                new_rows = []
+                pass
+        
         table.add_columns(*("Index", "ID", "Name", "Parents","Birthday", "Gender", "Location", "Blood Type"))
-        table.add_rows(rows)
+        table.add_rows(new_rows)
 
 
 class Viewer(Widget):

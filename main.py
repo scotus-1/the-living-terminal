@@ -11,6 +11,7 @@ from textual.screen import Screen
 
 class MainScreen(Screen):
     current_widget = reactive(5)
+    directory_filter = reactive((None, ""))
     directory_seed = reactive(0)
     files = reactive([
         ("Elizabeth", "Elizabeth.prs", True)
@@ -85,15 +86,21 @@ class MainScreen(Screen):
 
         if invoked_command == "filter":
             try:
-                filter = command[1]
-                filter_string = command[2]
+                if command[1] == "reset":
+                    self.directory_filter = (None, "")
+                    self.directory_seed = 0
+                else:
+                    self.directory_filter = (command[1].lower(), command[2].lower())
+                    self.directory_seed = command[2] + "funee_monkey" + command[1]
             except IndexError:
                 message.input.value = ""
                 return
         
 
         message.input.value = ""
-        
+    
+    def watch_directory_filter(self):
+        pass
 
     def compose(self) -> ComposeResult:
         yield TopHeader()
