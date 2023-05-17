@@ -6,9 +6,9 @@ from faker import Faker
 from textual.app import ComposeResult, App
 from textual.widget import Widget
 from textual.containers import Horizontal, Vertical, Center, Middle, Container
-from textual.widgets import Label, DataTable, TabbedContent, TabPane, RadioButton
+from textual.widgets import Label, DataTable, TabbedContent, TabPane, RadioButton, Input, Markdown
 from textual.reactive import reactive
-
+from main import MainScreen
 
 def app_query(widget: Widget, query):
     current_parent = widget
@@ -135,6 +135,7 @@ class Clock(Widget):
         elif time_setting == "future":
             self.query_one("#future_button").value = True
 
+
     def on_radio_button_changed(self, message:RadioButton.Changed):
         for radio_button in self.query():
             if not radio_button.id == message.radio_button.id:
@@ -154,9 +155,32 @@ class Clock(Widget):
 
 class Radio(Widget):
     def compose(self) -> ComposeResult:
-        yield Label("Test")
+        rf_on = not app_query(self, MainScreen).first().rf_on
+        radio_code = app_query(self, MainScreen).first().radio_code
+        radio_frequency = app_query(self, MainScreen).first().radio_frequency
+
+        yield Vertical(
+            Label("RADIO SETTINGS", id="radio_label"),
+            Horizontal(
+                Label("RADIO Code: "),
+                Input(radio_code, placeholder="#########", disabled=rf_on, id="radio_code_input")
+            ),
+            Horizontal(
+                Label("RADIO Frequency: "),
+                Input(radio_frequency, placeholder="#########", disabled=rf_on, id="radio_frequency_input")
+            )
+        )
+    
+
+    def on_input_changed(self, message):
+        changed_input = message.input
+
+        if changed_input.id == "radio_code_input":
+            app_query(self, MainScreen).first().radio_code = changed_input.value
+        elif changed_input.id == "radio_frequency_input":
+            app_query(self, MainScreen).first().radio_frequency = changed_input.value
 
 
 class Help(Widget):
     def compose(self) -> ComposeResult:
-        yield Label("Help")
+        yield Markdown("Test")

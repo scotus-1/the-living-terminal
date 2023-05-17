@@ -84,4 +84,39 @@ Clock RadioButton {
 
 #future_button {
     content-align: left top;
+} 
+
+Radio Vertical {
+    height: 100%;
+    width: 100%;
+}
+
+Radio #radio_label {
+    width: 100%;
+    height: 35%;
+    padding: 2;
+    content-align: center bottom;
+}
+
+Radio Horizontal Input {
+    content-align: center top;
+    width: 10%;
+}
+
+Radio Horizontal Label {
+    width: 48%;
+    text-align: right;
+    padding-right: 2;
+    offset-y: 1;
+}
+
+Radio Horizontal {
+    height: 14%;
+    margin: 2;
+}
+
+Help {
+    margin: 1 2;
+    padding: 1;
+    border: ascii deepskyblue;
 }

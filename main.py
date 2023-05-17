@@ -16,6 +16,9 @@ class MainScreen(Screen):
     ])
     time_setting = reactive("present")
     time_on = reactive(False)
+    rf_on = reactive(False)
+    radio_code = reactive("")
+    radio_frequency = reactive("")
 
     def on_list_view_selected(self, event):
         widget = event.list_view.index
@@ -45,15 +48,30 @@ class MainScreen(Screen):
         switch = message.switch
         
         if switch.id == "time_switch" and switch.value == False:
+            self.time_on = not self.time_on
             for radio_button in self.query("Clock RadioButton"):
                 radio_button.disabled = True
-                not self.time_on
+                
         elif switch.id == "time_switch" and switch.value == True:
+            self.time_on = not self.time_on
             for radio_button in self.query("Clock RadioButton"):
                 radio_button.disabled = False
-                not self.time_on
+        
+        elif switch.id == "rf_switch" and switch.value == False:
+            self.rf_on = not self.rf_on
+            for rf_input in self.query("Radio Input"):
+                rf_input.disabled = True
+                                       
+
+        elif switch.id == "rf_switch" and switch.value == True:
+            self.rf_on = not self.rf_on
+            for rf_input in self.query("Radio Input"):
+                rf_input.disabled = False
 
         print("test")
+
+    def on_input_submitted():
+        print("yeehaw")
 
 
     def compose(self) -> ComposeResult:
