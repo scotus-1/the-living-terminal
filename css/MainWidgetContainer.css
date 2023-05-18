@@ -37,9 +37,10 @@ Viewer DataTable {
 }
 
 Viewer Center {
-    padding: 1;
+    padding: 8;
     border: ascii deepskyblue;
 }
+
 
 Mail Tabs {
     margin: 2;

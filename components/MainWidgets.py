@@ -5,7 +5,7 @@ from faker import Faker
 from textual.app import ComposeResult, App
 from textual.widget import Widget
 from textual.containers import Horizontal, Vertical, Center, Middle, Container, VerticalScroll, ScrollableContainer
-from textual.widgets import Label, DataTable, TabbedContent, TabPane, RadioButton, Input, Markdown
+from textual.widgets import Label, DataTable, TabbedContent, TabPane, RadioButton, Input, Markdown, TextLog
 from main import MainScreen
 from components import content
 
@@ -18,8 +18,6 @@ def app_query(widget: Widget, query):
         
         if isinstance(current_parent, App):
             return current_parent.query(query)
-
-
 
 
 class Directory(Widget):
@@ -97,6 +95,22 @@ class Directory(Widget):
                     new_rows.append(row)
                 new_rows = new_rows[:random.randint(7,11)]
 
+                if directory_filter[1] == "Lindsey,Mark":
+                    insert_index = random.randint(0, len(new_rows) - 1)
+                    new_rows.insert(insert_index, 
+                        (0, "l1m0Ty17MDvb1NmQ", "Timothy Portman", "Lindsey,Mark", "1997-10-08", "Male", "33.6145123 , -117.87548926","B-")
+                                    )
+                    
+                    new_new_rows = []
+                    for index, row in enumerate(new_rows):
+                        row = list(row)
+                        row[0] = index 
+                        row = tuple(row)
+                        
+                        new_new_rows.append(row)
+                    new_rows = new_new_rows
+
+
             elif directory_filter[0] == "birthday":
                 new_rows = []
                 for row in rows:
@@ -106,14 +120,33 @@ class Directory(Widget):
                     new_rows.append(row)
                 new_rows = new_rows[:random.randint(24,57)]
 
-            elif directory_filter[0] == "location":
-                new_rows = []
-                pass
+                if directory_filter[1] == "1989-12-20":
+                    new_rows.insert(random.randint(0, len(new_rows) - 1), 
+                        (0, "XOXOXOXOXOXOXOXOX", "Harriet Portman", "Lindsey,Gregory", "1989-12-20", "Female", "33.61980134 , -117.97567426","B+")
+                                    )
+                    
+                    new_new_rows = []
+                    for index, row in enumerate(new_rows):
+                        row = list(row)
+                        row[0] = index 
+                        row = tuple(row)
+                        
+                        new_new_rows.append(row)
+                    new_rows = new_new_rows
 
-            elif directory_filter[0] == "id":
-                new_rows = []
-                pass
-        
+            elif directory_filter[0] == "location":
+                coordinates = directory_filter[1].split(",")
+                lat = coordinates[0]
+                long = coordinates[1]
+                if lat.startswith("50.62") and long.startswith("-96.98"):
+                    new_rows = [(0, "aaaaaaaaaaaaaaaa", "Mother", "Grandma,Grandpa", "1955-01-15", "Female", directory_filter[1], "AB+")]
+                else: new_rows = []
+
+            elif directory_filter[0] == "id":  
+                if directory_filter[1] == "C4Rrlef1l7pEr58M":
+                    new_rows = [(0, "C4Rrlef1l7pEr58M", "Carrie Hartfield", "Hartfield,Hartfield", "1989-07-04", "Female", "47.1107853 , -88.5066174", "O-")]
+                else: new_rows = []
+
         table.add_columns(*("Index", "ID", "Name", "Parents","Birthday", "Gender", "Location", "Blood Type"))
         table.add_rows(new_rows)
 
@@ -155,7 +188,9 @@ class Viewer(Widget):
         else:
             label_content = files[selected_file_index].present
         
-        main_container.mount(Label(label_content))
+        text_log = TextLog(wrap=True)
+        main_container.mount(text_log)
+        text_log.write(label_content, width=75)
     
     def on_data_table_row_selected(self, message):
         app_query(self, MainScreen).first().selected_file = message.cursor_row
@@ -177,20 +212,23 @@ class Viewer(Widget):
         
         main_container = self.query("#content_container").first()
         main_container.children[0].remove()
-        main_container.mount(Label(label_content))
+        text_log = TextLog(wrap=True)
+        main_container.mount(text_log)
+        text_log.write(label_content, width=75)
 
 class Mail(Widget):
     def compose(self) -> ComposeResult:
+        messages = app_query(self, MainScreen).first().messages
         with Container():
             with TabbedContent():
-                with TabPane("Message - ******"):
-                    yield VerticalScroll(Markdown(content.FIRST_MESSAGE))
+                for message in messages:
+                    with TabPane(message[0]):
+                        yield VerticalScroll(Markdown(message[1]))
         
 
 class Clock(Widget):
     def compose(self) -> ComposeResult:
         time_on = not app_query(self, MainScreen).first().time_on
-        print(time_on)
 
         yield Vertical(
             Label("Clock"),
@@ -253,7 +291,18 @@ class Radio(Widget):
         if changed_input.id == "radio_code_input":
             if len(changed_input.value) > 6:
                 changed_input.value = changed_input.value[:6]
+            
+            if changed_input.value == "1a5Pm0":
+                messages = app_query(self,MainScreen).first().messages
+
+                added_message = False
+                for message in messages:
+                    if message[0] == "Message - father": added_message = True
+                
+                if not added_message: app_query(self,MainScreen).first().messages.append(("Message - father", content.FATHER_MESSAGE))
+
             app_query(self, MainScreen).first().radio_code = changed_input.value
+
         elif changed_input.id == "radio_frequency_input":
             if len(changed_input.value) > 9:
                 changed_input.value = changed_input.value[:9]

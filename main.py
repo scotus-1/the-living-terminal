@@ -12,6 +12,8 @@ from textual.screen import Screen
 from textual.reactive import var, reactive
 from textual.css.query import NoMatches
 from textual.widgets.data_table import RowDoesNotExist
+from textual.widgets import TextLog
+from components.content import *
 import string
 import decimal
 
@@ -90,8 +92,10 @@ class Zalgo():
 class PrsFile:
     def __init__(self, name, id, filename=None, starred=False):
         self.name = name
-        if filename: self.filename = filename
-        else: self.filename = name + ".prs"
+        if filename: 
+            self.filename = filename
+        else: 
+            self.filename = name + ".prs"
         self.starred = starred
         
         self.base_seed = name = name + id
@@ -179,16 +183,134 @@ class PrsFile:
     def future(self):
         return self.scramble(self._future)
 
+
+class MotherFile(PrsFile):
+    @property
+    def present(self):
+        return "Whereas Mother is gone, I know, and there is only a slight emptiness now, a year after the fact, I still think she is somehow here--caught in the detritus dust attached to the pale green living room curtains, somewhere in the radio waves coming through the air, or perhaps misaddressed in the mail, eventually to find her way back to me. I don't know if this is a healthy feeling"
+    @property
+    def past(self):
+        return """
+Thank you for shopping at Commercial Systems!
+
+Items:
+    Q1 $1499.99 VAGABOND RADIO BROADCAST MIXER CONSOLE & TRANSMITTER
+        - 20% coupon applied
+
+SUBTOTAL: $1499.99
+    + tax $1129.45
+__________________
+TOTAL: $1629.44
+
+CARD: Visa *4044
+
+##########################################################################################################
+Mail this reciept back to your nearest Commercial Systems Management Office for a special Chirstmas rebate!
+##########################################################################################################
+SPECIAL PRINTNING INFO:
+REGISTER VAGABOND PRODUCTS BY MAIL FOR TEN-YEAR WARRENTY
+CODE: 1a5Pm0
+
+
+##/##/####
+        """
+
+
+class CarrieFile(PrsFile):
+    @property
+    def present(self):
+        return """
+AP NEWS
+By KIMBERLY KRUESI, ANDREW DeMILLO
+
+Houghton, MI. (AP) - In Houghton County, a murder and rape of Carrie Hartfield has been reported and found. For this town, many are shocked and now grieving, not only because of the murder itself, but the suspect [name redacted] as well.
+Lindsey and Mark Portman, parents of Carrie's classmate and a ten-year old brother who was babysat by [name_redacted] older brother, share their thoughts:
+
+"We never though this could ever happen in our community for such a small, and tightknit group and family group. Seeing [name_redacted]'s parents almost every week and now having to console them over this is truly tragic."
+        """
+
+
+class TimothyFile(PrsFile):
+    @property
+    def present(self):
+        return """
+Dear Diary.
+    My teeth hurt.
+    This birthday trip to California kind of sucks.
+    At least its for my sister.
+    She would be mad at me if she found about the sink I flooder earlier.
+    She is now eight years older than me instead of 7.
+    Oh well.
+
+    Timothy 12/20/07
+    """
+
+class HarrietFile(PrsFile):
+    @property
+    def present(self):
+        return """
+    The snow wIll come throgh the trees in waves. It will not be just intermittent radi0 waves filtering through snow likE water reverberating through charcoal crust in the sewage treatment plant, and moving back through the pipes to houses and the water towers that the civil engineers made of concrete and mathmatics. The snow is radio, is water plus cold, is slow dance at prom and bad-haired-everyone circling eachother hands on hips and glossy necks, then going home to sex or loneliness or fire or guilt.
+    Harriet will open the door to go out in it, to bear its weight on her body. And it does have weight--incremental pressure diStributed on the skin, that wide and tender organ. Incremental increases in her fines, even as she will tak3 the crystallized snow in her mouth that goes to water on her tongue.
+    The snow will be a marker of her guilt for letting Jelly down after prom. The snow is A marker that she is still behind. This snow is Liz, whom she knew so well from school, who came to that awful end so undeserved. 
+        """
+    @property
+    def future(self):
+        return"""
+    code && input:
+the_central_x
+        """
+
+
+class LizFile(PrsFile):
+    def __init__(self, name, id, rf_frequency, filename=None, starred=False):
+        super().__init__(name, id, filename, starred)
+        self.rf_frequency = rf_frequency
+        self._future = "solve"
+    
+
+    def regenerate(self, input_seed):
+        fake = Faker()
+
+        current_seed = self.base_seed + "past" + input_seed
+        
+        Faker.seed(current_seed)
+        random.seed(current_seed)
+
+        self._past = ""
+        for sentence in fake.sentences(random.randint(1,10)):
+            self._past = self._past + sentence + "\n"
+
+        current_seed = self.base_seed + "present" + input_seed
+        Faker.seed(current_seed)
+        random.seed(current_seed)
+        self._present = ""
+        for sentence in fake.sentences(random.randint(1,10)):
+            self._present = self._present + sentence + "\n"
+        
+        if input_seed == "the_central_x":
+            self._future = "[@click=asda()][ escape ][/]"
+        else:
+            current_seed = self.base_seed + "future" + input_seed
+            Faker.seed(current_seed)
+            random.seed(current_seed)
+            self._future = ""
+            for sentence in fake.sentences(random.randint(1,10)):
+                self._future = self._future + sentence + "\n"
+
+
 class MainScreen(Screen):
     current_widget = reactive(5)
     directory_filter = var((None, ""))
     directory_seed = var(0)
     selected_file = reactive(0)
     files = reactive([
-        PrsFile("Elizabeth", "liz.prs", "liz", True)
+        PrsFile("Elizabeth", "liz", filename="liz.prs", starred=True)
     ])
     input_seed = reactive("")
     time_setting = reactive("present")
+    messages = reactive([
+        ("Message - ******", FIRST_MESSAGE)
+    ])
     time_on = reactive(False)
     rf_on = reactive(False)
 
@@ -250,8 +372,6 @@ class MainScreen(Screen):
             for rf_input in self.query("Radio Input"):
                 rf_input.disabled = False
 
-        print("test")
-
     def on_input_submitted(self, message: Input.Submitted):
         command = message.input.value.strip()
         command = command.split(" ")
@@ -273,7 +393,7 @@ class MainScreen(Screen):
                 if command[1] == "reset":
                     self.directory_filter = (None, "")
                 else:
-                    self.directory_filter = (command[1].lower(), command[2].lower())
+                    self.directory_filter = (command[1].lower(), command[2])
             except IndexError:
                 with message.input.prevent(Input.Changed):
                     message.input.value = ""
@@ -285,7 +405,17 @@ class MainScreen(Screen):
                 row_info = table.get_row_at(int(command[1]))
                 name = row_info[2]
                 id = row_info[1]
-                self.files.append(PrsFile(name, id))
+
+                if id == "aaaaaaaaaaaaaaaa":
+                    self.files.append(MotherFile(name, id))
+                elif id == "C4Rrlef1l7pEr58M":
+                    self.files.append(CarrieFile(name, id))
+                elif id == "l1m0Ty17MDvb1NmQ":
+                    self.files.append(TimothyFile(name, id))
+                elif id == "XOXOXOXOXOXOXOXOX":
+                    self.files.append(HarrietFile(name,id))
+                else:
+                    self.files.append(PrsFile(name, id))
 
             except (IndexError, NoMatches, RowDoesNotExist):
                 with message.input.prevent(Input.Changed):
@@ -311,7 +441,9 @@ class MainScreen(Screen):
                 else:
                     label_content = file.present
 
-                main_container.mount(Label(label_content))
+                text_log = TextLog(wrap=True)
+                main_container.mount(text_log)
+                text_log.write(label_content, width=75)
             except IndexError: 
                 with message.input.prevent(Input.Changed):
                     message.input.value = ""
@@ -347,8 +479,8 @@ class MainScreen(Screen):
                 location = filter_string.split(",")
                 assert len(location) == 2
                 try:
-                    assert decimal.Decimal(location[0]) >= 0 and decimal.Decimal(location[0]) <= 100
-                    assert decimal.Decimal(location[1]) >= 0 and decimal.Decimal(location[1]) <= 100
+                    assert decimal.Decimal(location[0]) >= -100 and decimal.Decimal(location[0]) <= 100
+                    assert decimal.Decimal(location[1]) >= -100 and decimal.Decimal(location[1]) <= 100
                 except:
                     raise AssertionError
             else:
@@ -366,7 +498,6 @@ class MainScreen(Screen):
         else:
             self.directory_seed = filter[0] + filter[1]
 
-        print(self.directory_seed)
         main_widget_container = self.query_one("#mainwidgetcontainer")
         if isinstance(main_widget_container.children[0], mw.Directory):
             main_widget_container.children[0].remove()
