@@ -1,6 +1,7 @@
 import glob
 import sys
-from textual.app import App
+from textual import events
+from textual.app import App, ComposeResult
 from screens.WelcomeScreen import WelcomeScreen
 from screens.LoadingScreen import LoadingScreen
 
@@ -12,7 +13,9 @@ from textual.screen import Screen
 from textual.reactive import var, reactive
 from textual.css.query import NoMatches
 from textual.widgets.data_table import RowDoesNotExist
-from textual.widgets import TextLog
+from textual.widgets import TextLog, Static
+from textual.message import Message
+from  textual.containers import Center, Middle
 from components.content import *
 import string
 import decimal
@@ -256,17 +259,29 @@ class HarrietFile(PrsFile):
     @property
     def future(self):
         return"""
-    code && input:
+    λ && input:
 the_central_x
         """
 
 
 class LizFile(PrsFile):
-    def __init__(self, name, id, rf_frequency, filename=None, starred=False):
+    def __init__(self, name, id, rf_frequency, rf_on, filename=None, starred=False):
         super().__init__(name, id, filename, starred)
+
+        self.rf_on = rf_on
         self.rf_frequency = rf_frequency
         self._future = "solve"
+        self.solved = False
     
+    @property
+    def future(self):
+        if self.rf_on and self.rf_frequency == "103.54" and self.solved:
+            return "this_is_it_boys"
+        else:
+            if not self._future == "solve":
+                return self.scramble(self._future)
+            else: return self._future
+
 
     def regenerate(self, input_seed):
         fake = Faker()
@@ -288,8 +303,12 @@ class LizFile(PrsFile):
             self._present = self._present + sentence + "\n"
         
         if input_seed == "the_central_x":
-            self._future = "[@click=asda()][ escape ][/]"
+            self.solved = True
+        elif input_seed == "":
+            self.solved == False
+            self._future = "solve"
         else:
+            self.solved = False
             current_seed = self.base_seed + "future" + input_seed
             Faker.seed(current_seed)
             random.seed(current_seed)
@@ -303,20 +322,26 @@ class MainScreen(Screen):
     directory_filter = var((None, ""))
     directory_seed = var(0)
     selected_file = reactive(0)
-    files = reactive([
-        PrsFile("Elizabeth", "liz", filename="liz.prs", starred=True)
-    ])
+    
     input_seed = reactive("")
     time_setting = reactive("present")
     messages = reactive([
         ("Message - ******", FIRST_MESSAGE)
     ])
     time_on = reactive(False)
-    rf_on = reactive(False)
 
+    rf_on = reactive(False)
     radio_code = reactive("")
     radio_frequency = reactive("")
-
+    files = reactive([
+        LizFile("Elizabeth", "liz", radio_frequency, rf_on, filename="liz.prs", starred=True)
+    ])
+    def watch_radio_frequency(self, frequency):
+        self.files[0].rf_frequency = frequency
+    
+    def watch_rf_on(self, on):
+        self.files[0].rf_on = on
+    
     def on_list_view_selected(self, event):
         widget = event.list_view.index
         if widget == self.current_widget: return
@@ -353,12 +378,6 @@ class MainScreen(Screen):
                 self.time_on = not self.time_on
                 for radio_button in self.query("Clock RadioButton"):
                     radio_button.disabled = False
-
-            main_widget_container = self.query_one("#mainwidgetcontainer")
-            
-            if isinstance(main_widget_container.children[0], mw.Viewer):
-                main_widget_container.children[0].remove()
-                main_widget_container.mount(mw.Viewer())
             
         
         if switch.id == "rf_switch" and switch.value == False:
@@ -371,6 +390,12 @@ class MainScreen(Screen):
             self.rf_on = not self.rf_on
             for rf_input in self.query("Radio Input"):
                 rf_input.disabled = False
+
+        main_widget_container = self.query_one("#mainwidgetcontainer")
+            
+        if isinstance(main_widget_container.children[0], mw.Viewer):
+            main_widget_container.children[0].remove()
+            main_widget_container.mount(mw.Viewer())
 
     def on_input_submitted(self, message: Input.Submitted):
         command = message.input.value.strip()
@@ -441,9 +466,12 @@ class MainScreen(Screen):
                 else:
                     label_content = file.present
 
-                text_log = TextLog(wrap=True)
-                main_container.mount(text_log)
-                text_log.write(label_content, width=75)
+                if label_content == "this_is_it_boys":
+                    main_container.mount(Label("[@click=escape()]\[escape][/]"))
+                else:
+                    text_log = TextLog(wrap=True)
+                    main_container.mount(text_log)
+                    text_log.write(label_content, width=75)
             except IndexError: 
                 with message.input.prevent(Input.Changed):
                     message.input.value = ""
@@ -518,17 +546,57 @@ class MainScreen(Screen):
         main_screen.mount(mw.Help())
 
 
+class BSOD(Screen):
+    def compose(self) -> ComposeResult:
+        yield Static(" apetureOS ", id="title_bsod")
+        yield Static(ERROR_TEXT)
+        yield Static("Press any key to restart [blink]_[/]", id="any-key")
+    
+
+    class Restart(Message):
+        pass
+
+
+    def on_key(self):
+        self.parent.restart()
+
+
+class FinalScreen(Screen):
+    def compose(self) -> ComposeResult:
+        with Center():
+            with Middle():
+                label = Label('[#5BCEFA bold]Thank You [#F5A9B8]For Solving\n\n[#FFFFFF]"Elizabeth my itch and inch and ink. Elizabeth my etc. Elizabeth just etc."\n                                            - Ander Monson')
+                label.styles.text_align = "center"
+                yield label
+
+
 class TheLivingTerminal(App):
     """A Textual app to manage stopwatches."""
      
     CSS_PATH = list(glob.glob("./css/*.css"))
     SCREENS = {"welcome": WelcomeScreen(),
                 "loading": LoadingScreen(),
-                "main": MainScreen()}
-   
+                "main": MainScreen(),
+                "blue": BSOD(),
+                "final": FinalScreen()}
+    
+    done = False
+    def restart(self):
+        self.pop_screen()
+        self.done = True
+        self.push_screen("loading")
+    
+    def action_escape(self) -> None:
+        self.pop_screen()
+        self.push_screen("blue")
+        for _ in range(5):
+            self.bell()
+
     def on_loading_screen_progress_bar_complete(self) -> None:
         self.pop_screen()
-        self.push_screen("main")
+        if not self.done:
+            self.push_screen("main")
+        else: self.push_screen("final")
 
     def on_login_form_authenticated(self) -> None:
         self.pop_screen()

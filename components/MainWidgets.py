@@ -188,9 +188,12 @@ class Viewer(Widget):
         else:
             label_content = files[selected_file_index].present
         
-        text_log = TextLog(wrap=True)
-        main_container.mount(text_log)
-        text_log.write(label_content, width=75)
+        if label_content == "this_is_it_boys":
+            main_container.mount(Label("[@click=escape()]\[escape][/]"))
+        else:
+            text_log = TextLog(wrap=True)
+            main_container.mount(text_log)
+            text_log.write(label_content, width=75)
     
     def on_data_table_row_selected(self, message):
         app_query(self, MainScreen).first().selected_file = message.cursor_row
@@ -212,9 +215,12 @@ class Viewer(Widget):
         
         main_container = self.query("#content_container").first()
         main_container.children[0].remove()
-        text_log = TextLog(wrap=True)
-        main_container.mount(text_log)
-        text_log.write(label_content, width=75)
+        if label_content == "this_is_it_boys":
+            main_container.mount(Label("[@click=escape()]\[escape][/]"))
+        else:
+            text_log = TextLog(wrap=True)
+            main_container.mount(text_log)
+            text_log.write(label_content, width=75)
 
 class Mail(Widget):
     def compose(self) -> ComposeResult:

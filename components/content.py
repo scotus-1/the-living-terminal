@@ -62,3 +62,12 @@ APERTURE_HELP = """
 """
 
 FATHER_MESSAGE = "01000011\n00110100\n01010010\n01110010\n01101100\n01100101\n01100110\n00110001\n01101100\n00110111\n01110000\n01000101\n01110010\n00110101\n00111000\n01001101\n"
+
+ERROR_TEXT = """
+An error has occurred. To continue:
+
+`livemem[0x7xhj45]` has reported to be corrupt. Please
+restart your computer in order to reinitialize all systems including those affected {connections, memory}.
+
+Error: 0E : 016F : BFF9B3D4
+"""

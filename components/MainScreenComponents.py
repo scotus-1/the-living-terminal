@@ -40,4 +40,4 @@ class MainWidgetContainer(Widget):
 
 class TopHeader(Widget):
     def compose(self) -> ComposeResult:
-        yield Container(Label("@ ApertureOS", id="title"))
+        yield Container(Label("@ apertureOS", id="title"))

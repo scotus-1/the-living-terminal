@@ -5,8 +5,6 @@
 - Keybind to change window
 - Refractor files
 - Add all filters by id
-- Italicize Liz Text
-- Change viewer to wrappble Labels?
 
 reflection notes:
     - radio connections
